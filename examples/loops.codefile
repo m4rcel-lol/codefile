@@ -1,0 +1,30 @@
+# Loops — examples/loops.codefile
+# Demonstrates for and while loops.
+
+let fruits = ["apple", "banana", "cherry", "date"]
+
+task default needs for_demo, while_demo:
+    log("All loop demos complete")
+
+task for_demo:
+    log("--- for loop over list ---")
+    for fruit in fruits:
+        print("  fruit: ${fruit}")
+
+    log("--- for loop over inline list ---")
+    for n in [1, 2, 3, 4, 5]:
+        print("  n = ${n}")
+
+    log("--- for loop with break ---")
+    for item in fruits:
+        if item == "cherry":
+            break
+        print("  before cherry: ${item}")
+
+task while_demo:
+    log("--- while loop ---")
+    let x = 5
+    while x > 0:
+        print("  x = ${x}")
+        let x = x - 1
+    print("done, x = ${x}")

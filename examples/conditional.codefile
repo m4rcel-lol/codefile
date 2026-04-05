@@ -1,0 +1,43 @@
+# Conditionals — examples/conditional.codefile
+# Demonstrates if/elif/else with environment variable checks.
+
+task default:
+    let plat = platform()
+    log("Running on platform: ${plat}")
+
+    if plat == "windows":
+        print("Windows-specific path")
+    elif plat == "linux":
+        print("Linux-specific path")
+    else:
+        print("Unknown platform")
+
+    # Check environment variable
+    let user = env("USER", env("USERNAME", "unknown"))
+    print("Current user: ${user}")
+
+    let debug = env("DEBUG", "false")
+    if debug == "true":
+        log("DEBUG mode is ON")
+    else:
+        log("DEBUG mode is OFF")
+
+    # Nested conditions
+    let x = 42
+    if x > 100:
+        print("x is large")
+    elif x > 50:
+        print("x is medium")
+    elif x > 0:
+        print("x is small and positive")
+    else:
+        print("x is zero or negative")
+
+    # Boolean expressions
+    let a = true
+    let b = false
+    if a and not b:
+        print("a is true and b is false — correct!")
+
+    if a or b:
+        print("at least one is true")

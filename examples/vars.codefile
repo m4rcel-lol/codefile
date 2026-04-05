@@ -1,0 +1,27 @@
+# Variables and types — examples/vars.codefile
+# Demonstrates variable declaration, types, and expressions.
+
+let greeting = "Hello"
+let count = 42
+let flag = true
+let items = ["apple", "banana", "cherry"]
+
+task default:
+    print("greeting = ${greeting}")
+    print("count    = ${count}")
+    print("flag     = ${flag}")
+
+    let doubled = count * 2
+    print("doubled  = ${doubled}")
+
+    let msg = greeting + ", World!"
+    print(msg)
+
+    let length = len(items)
+    print("items has ${length} elements")
+
+    let big = count > 10
+    if big:
+        print("count is greater than 10")
+    else:
+        print("count is not greater than 10")
