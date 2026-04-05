@@ -357,7 +357,12 @@ class Lexer:
             if ch == '\\' and pos + 1 < length:
                 nxt = line[pos + 1]
                 escape_map = {'n': '\n', 't': '\t', '\\': '\\', '"': '"', "'": "'"}
-                buf.append(escape_map.get(nxt, nxt))
+                if nxt in escape_map:
+                    buf.append(escape_map[nxt])
+                else:
+                    # Preserve unknown escapes literally (e.g. Windows paths like C:\Users\...)
+                    buf.append('\\')
+                    buf.append(nxt)
                 pos += 2
                 continue
             if ch == quote:

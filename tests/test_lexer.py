@@ -53,6 +53,11 @@ class TestLiterals:
         assert toks[0].type == TT.STRING
         assert "${name}" in toks[0].value
 
+    def test_string_preserves_unknown_backslash_escapes(self):
+        toks = tokenize(r'"C:\Users\runneradmin\file.txt"')
+        assert toks[0].type == TT.STRING
+        assert toks[0].value == r"C:\Users\runneradmin\file.txt"
+
     def test_bool_true(self):
         toks = tokenize("true")
         assert toks[0].type == TT.BOOL
