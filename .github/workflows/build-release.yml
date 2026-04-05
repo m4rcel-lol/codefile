@@ -9,6 +9,8 @@ jobs:
   build-linux:
     name: Build Linux binary + .deb
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +66,8 @@ jobs:
   build-windows:
     name: Build Windows .exe
     runs-on: windows-latest
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
