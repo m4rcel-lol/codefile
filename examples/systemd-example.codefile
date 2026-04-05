@@ -1,0 +1,28 @@
+# Systemd example — examples/systemd-example.codefile
+# Shows how Codefile can be used in a Linux systemd service context.
+# The systemd unit file (codefile.service) would call:
+#   ExecStart=/usr/local/bin/codefile run -f /opt/myapp/deploy.codefile deploy
+
+let app_dir = "/opt/myapp"
+let log_file = "/var/log/myapp/deploy.log"
+
+task setup:
+    if platform() != "linux":
+        fail("This codefile is Linux-only (systemd context)")
+    log("Setting up application directories")
+    $ mkdir -p /opt/myapp /var/log/myapp
+    log("Directories ready")
+
+task deploy needs setup:
+    log("Deploying application from ${app_dir}")
+    $ systemctl stop myapp || true
+    $ cp -r . ${app_dir}
+    $ systemctl start myapp
+    log("Deploy complete")
+
+task status:
+    let svc_status = run("systemctl is-active myapp")
+    print("myapp service status: ${svc_status}")
+
+task default needs deploy:
+    log("Service deployment finished")

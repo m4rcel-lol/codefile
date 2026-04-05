@@ -1,0 +1,37 @@
+# Shell commands — examples/shell.codefile
+# Demonstrates inline shell commands and capturing output.
+
+task default needs show_date, show_files:
+    log("Shell demo complete")
+
+task show_date:
+    log("--- inline shell command ---")
+    if platform() == "windows":
+        $ echo Current date/time:
+        $ date /T
+        $ time /T
+    else:
+        $ echo "Current date/time:"
+        $ date
+
+task show_files:
+    log("--- capturing shell output with run() ---")
+    if platform() == "windows":
+        let listing = run("dir /B")
+    else:
+        let listing = run("ls -1")
+    print("Files in current directory:")
+    print(listing)
+
+task shell_block_demo:
+    log("--- shell block ---")
+    if platform() == "windows":
+        shell:
+            echo line 1
+            echo line 2
+            echo line 3
+    else:
+        shell:
+            echo "line 1"
+            echo "line 2"
+            echo "line 3"

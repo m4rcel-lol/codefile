@@ -1,0 +1,46 @@
+# Build pipeline — examples/build.codefile
+# Demonstrates a realistic compile → test → package → deploy workflow.
+
+let output_dir = "dist"
+let app_name = "myapp"
+
+task clean:
+    if platform() == "windows":
+        $ if exist dist rmdir /S /Q dist
+    else:
+        $ rm -rf dist
+    log("Cleaned ${output_dir}")
+
+task compile needs clean:
+    if platform() == "windows":
+        $ if not exist dist mkdir dist
+        $ echo Compiling (Windows stub) > dist\${app_name}.exe
+    else:
+        $ mkdir -p dist
+        $ echo "#!/bin/sh\necho app running" > dist/${app_name}
+        $ chmod +x dist/${app_name}
+    log("Compiled ${app_name}")
+
+task test needs compile:
+    log("Running tests...")
+    if platform() == "windows":
+        $ echo tests passed
+    else:
+        $ echo "tests passed"
+    log("Tests passed")
+
+task package needs test:
+    log("Packaging...")
+    if platform() == "windows":
+        $ powershell Compress-Archive -Path dist -DestinationPath dist\package.zip -Force
+    else:
+        $ tar -czf dist/package.tar.gz dist/${app_name}
+    log("Package created")
+
+task deploy needs package:
+    log("Deploying (dry run)...")
+    $ echo "Deployed to production"
+    log("Deploy complete")
+
+task default needs deploy:
+    log("Full build pipeline complete")

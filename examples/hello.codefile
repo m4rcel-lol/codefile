@@ -1,0 +1,11 @@
+# Hello World — examples/hello.codefile
+# Demonstrates basic task definition and string interpolation.
+
+let name = "World"
+
+task default needs greet:
+    log("Running default task")
+
+task greet:
+    print("Hello, ${name}!")
+    $ echo "Shell says hello too"

@@ -1,0 +1,97 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-linux:
+    name: Build Linux binary + .deb
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build standalone binary
+        run: pyinstaller --onefile --name codefile cli.py
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create .deb package structure
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PKG="codefile_${VERSION}_amd64"
+          mkdir -p "${PKG}/DEBIAN"
+          mkdir -p "${PKG}/usr/local/bin"
+          cp dist/codefile "${PKG}/usr/local/bin/codefile"
+          cat > "${PKG}/DEBIAN/control" <<EOF
+          Package: codefile
+          Version: ${VERSION}
+          Architecture: amd64
+          Maintainer: Codefile Team <codefile@example.com>
+          Description: Codefile — a task-oriented scripting language
+           Codefile is a modern, human-readable scripting language inspired
+           by Makefile but designed as a real programming language with
+           variables, control flow, loops, and first-class shell integration.
+          EOF
+          dpkg-deb --build "${PKG}"
+
+      - name: Upload Linux binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-linux
+          path: dist/codefile
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-deb
+          path: codefile_*.deb
+
+  build-windows:
+    name: Build Windows .exe
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build standalone .exe
+        run: pyinstaller --onefile --name codefile cli.py
+
+      - name: Create zip archive
+        run: |
+          Compress-Archive -Path dist\codefile.exe, README.md -DestinationPath codefile-windows.zip
+        shell: powershell
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-windows
+          path: codefile-windows.zip
