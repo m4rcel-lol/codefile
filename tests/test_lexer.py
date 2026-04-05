@@ -65,6 +65,23 @@ class TestLiterals:
 
 
 class TestKeywords:
+    def test_custom_primary_keywords(self):
+        types = [t.type for t in tokenize("job requires bind when elsewhen otherwise each over loop use give stop skip exec")]
+        assert TT.TASK in types
+        assert TT.NEEDS in types
+        assert TT.LET in types
+        assert TT.IF in types
+        assert TT.ELIF in types
+        assert TT.ELSE in types
+        assert TT.FOR in types
+        assert TT.IN in types
+        assert TT.WHILE in types
+        assert TT.IMPORT in types
+        assert TT.RETURN in types
+        assert TT.BREAK in types
+        assert TT.CONTINUE in types
+        assert TT.SHELL in types
+
     def test_task_keyword(self):
         toks = tokenize("task")
         assert toks[0].type == TT.TASK
@@ -109,6 +126,10 @@ class TestKeywords:
 
 
 class TestOperators:
+    def test_fatarrow(self):
+        toks = tokenize("=>")
+        assert toks[0].type == TT.FATARROW
+
     def test_eq(self):
         toks = tokenize("=")
         assert toks[0].type == TT.EQ

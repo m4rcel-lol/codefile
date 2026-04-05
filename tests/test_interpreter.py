@@ -30,6 +30,22 @@ def run_task(source: str, task: str = "default") -> None:
 # ---------------------------------------------------------------------------
 
 class TestTaskExecution:
+    def test_custom_job_runs(self, capsys):
+        src = 'job default =>\n    print("hello")\n'
+        run_task(src)
+        out = capsys.readouterr().out
+        assert "hello" in out
+
+    def test_custom_requires_runs(self, capsys):
+        src = (
+            'job setup =>\n    print("setup")\n'
+            'job default requires setup =>\n    print("run")\n'
+        )
+        run_task(src)
+        out = capsys.readouterr().out
+        assert "setup" in out
+        assert "run" in out
+
     def test_simple_task_runs(self, capsys):
         src = 'task default:\n    print("hello")\n'
         run_task(src)
@@ -83,6 +99,11 @@ class TestTaskExecution:
 # ---------------------------------------------------------------------------
 
 class TestVariables:
+    def test_custom_bind_variable(self, capsys):
+        src = 'bind x = 42\njob default =>\n    print(x)\n'
+        run_task(src)
+        assert "42" in capsys.readouterr().out
+
     def test_int_variable(self, capsys):
         src = 'let x = 42\ntask default:\n    print(x)\n'
         run_task(src)
@@ -181,6 +202,25 @@ class TestLogic:
 # ---------------------------------------------------------------------------
 
 class TestConditionals:
+    def test_custom_when_taken(self, capsys):
+        src = 'job default =>\n    when true =>\n        print("yes")\n'
+        run_task(src)
+        assert "yes" in capsys.readouterr().out
+
+    def test_custom_elsewhen_otherwise(self, capsys):
+        src = (
+            'bind x = 5\n'
+            'job default =>\n'
+            '    when x > 10 =>\n'
+            '        print("big")\n'
+            '    elsewhen x > 3 =>\n'
+            '        print("medium")\n'
+            '    otherwise =>\n'
+            '        print("small")\n'
+        )
+        run_task(src)
+        assert "medium" in capsys.readouterr().out
+
     def test_if_taken(self, capsys):
         src = 'task default:\n    if true:\n        print("yes")\n'
         run_task(src)
@@ -216,6 +256,34 @@ class TestConditionals:
 # ---------------------------------------------------------------------------
 
 class TestForLoop:
+    def test_custom_each_over(self, capsys):
+        src = (
+            'job default =>\n'
+            '    each x over [1, 2, 3] =>\n'
+            '        print(x)\n'
+        )
+        run_task(src)
+        out = capsys.readouterr().out
+        assert "1" in out
+        assert "2" in out
+        assert "3" in out
+
+    def test_custom_stop_skip(self, capsys):
+        src = (
+            'job default =>\n'
+            '    each x over [1, 2, 3] =>\n'
+            '        when x == 2 =>\n'
+            '            skip\n'
+            '        when x == 3 =>\n'
+            '            stop\n'
+            '        print(x)\n'
+        )
+        run_task(src)
+        out = capsys.readouterr().out
+        assert "1" in out
+        assert "2" not in out
+        assert "3" not in out
+
     def test_for_over_list(self, capsys):
         src = (
             'task default:\n'
@@ -261,6 +329,20 @@ class TestForLoop:
 # ---------------------------------------------------------------------------
 
 class TestWhileLoop:
+    def test_custom_loop(self, capsys):
+        src = (
+            'job default =>\n'
+            '    bind n = 3\n'
+            '    loop n > 0 =>\n'
+            '        print(n)\n'
+            '        bind n = n - 1\n'
+        )
+        run_task(src)
+        out = capsys.readouterr().out
+        assert "3" in out
+        assert "2" in out
+        assert "1" in out
+
     def test_while(self, capsys):
         src = (
             'task default:\n'
@@ -281,6 +363,11 @@ class TestWhileLoop:
 # ---------------------------------------------------------------------------
 
 class TestBuiltins:
+    def test_custom_exec_block(self, capsys):
+        src = 'job default =>\n    exec =>\n        echo hello\n'
+        run_task(src)
+        _ = capsys.readouterr()
+
     def test_len_list(self, capsys):
         src = 'task default:\n    print(len([1, 2, 3]))\n'
         run_task(src)

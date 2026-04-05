@@ -47,6 +47,12 @@ class TestProgram:
 # ---------------------------------------------------------------------------
 
 class TestAssignment:
+    def test_custom_bind_assignment(self):
+        node = first_stmt("bind x = 42")
+        assert isinstance(node, AssignNode)
+        assert node.name == "x"
+        assert isinstance(node.value, IntLiteralNode)
+
     def test_int_assignment(self):
         node = first_stmt("let x = 42")
         assert isinstance(node, AssignNode)
@@ -79,6 +85,18 @@ class TestAssignment:
 # ---------------------------------------------------------------------------
 
 class TestTaskDefinition:
+    def test_custom_simple_job(self):
+        src = "job hello =>\n    print(1)\n"
+        node = first_stmt(src)
+        assert isinstance(node, TaskNode)
+        assert node.name == "hello"
+
+    def test_custom_job_with_requires(self):
+        src = "job build requires clean =>\n    print(1)\n"
+        node = first_stmt(src)
+        assert isinstance(node, TaskNode)
+        assert node.dependencies == ["clean"]
+
     def test_simple_task(self):
         src = "task hello:\n    print(1)\n"
         node = first_stmt(src)
@@ -111,6 +129,17 @@ class TestTaskDefinition:
 # ---------------------------------------------------------------------------
 
 class TestIf:
+    def test_custom_when_elsewhen_otherwise(self):
+        src = (
+            "when x > 10 =>\n    print(1)\n"
+            "elsewhen x > 5 =>\n    print(2)\n"
+            "otherwise =>\n    print(3)\n"
+        )
+        node = first_stmt(src)
+        assert isinstance(node, IfNode)
+        assert len(node.elif_clauses) == 1
+        assert len(node.else_body) == 1
+
     def test_simple_if(self):
         src = "if x > 0:\n    print(x)\n"
         node = first_stmt(src)
@@ -142,6 +171,12 @@ class TestIf:
 # ---------------------------------------------------------------------------
 
 class TestFor:
+    def test_custom_each_over_loop(self):
+        src = "each item over items =>\n    print(item)\n"
+        node = first_stmt(src)
+        assert isinstance(node, ForNode)
+        assert node.variable == "item"
+
     def test_for_loop(self):
         src = "for item in items:\n    print(item)\n"
         node = first_stmt(src)
@@ -162,6 +197,12 @@ class TestFor:
 # ---------------------------------------------------------------------------
 
 class TestWhile:
+    def test_custom_loop(self):
+        src = "loop x > 0 =>\n    bind x = x - 1\n"
+        node = first_stmt(src)
+        assert isinstance(node, WhileNode)
+        assert isinstance(node.condition, BinaryOpNode)
+
     def test_while_loop(self):
         src = "while x > 0:\n    let x = x - 1\n"
         node = first_stmt(src)
@@ -174,6 +215,23 @@ class TestWhile:
 # ---------------------------------------------------------------------------
 
 class TestControlFlow:
+    def test_custom_stop(self):
+        src = "each x over items =>\n    stop\n"
+        for_node = first_stmt(src)
+        assert isinstance(for_node.body[0], BreakNode)
+
+    def test_custom_skip(self):
+        src = "each x over items =>\n    skip\n"
+        for_node = first_stmt(src)
+        assert isinstance(for_node.body[0], ContinueNode)
+
+    def test_custom_give(self):
+        src = "job foo =>\n    give 42\n"
+        task = first_stmt(src)
+        ret = task.body[0]
+        assert isinstance(ret, ReturnNode)
+        assert isinstance(ret.value, IntLiteralNode)
+
     def test_break(self):
         src = "for x in items:\n    break\n"
         for_node = first_stmt(src)
@@ -204,6 +262,13 @@ class TestControlFlow:
 # ---------------------------------------------------------------------------
 
 class TestShell:
+    def test_custom_exec_block(self):
+        src = "job foo =>\n    exec =>\n        echo line1\n        echo line2\n"
+        task = first_stmt(src)
+        block = task.body[0]
+        assert isinstance(block, ShellBlockNode)
+        assert len(block.commands) == 2
+
     def test_shell_line(self):
         src = "task foo:\n    $ echo hello\n"
         task = first_stmt(src)
@@ -224,6 +289,12 @@ class TestShell:
 # ---------------------------------------------------------------------------
 
 class TestImport:
+    def test_custom_use_statement(self):
+        src = 'use "other.codefile"'
+        node = first_stmt(src)
+        assert isinstance(node, ImportNode)
+        assert node.path == "other.codefile"
+
     def test_import_statement(self):
         src = 'import "other.codefile"'
         node = first_stmt(src)

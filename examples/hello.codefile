@@ -1,11 +1,11 @@
 # Hello World — examples/hello.codefile
-# Demonstrates basic task definition and string interpolation.
+# Demonstrates basic job definition and string interpolation.
 
-let name = "World"
+bind name = "World"
 
-task default needs greet:
-    log("Running default task")
+job default requires greet =>
+    log("Running default job")
 
-task greet:
+job greet =>
     print("Hello, ${name}!")
     $ echo "Shell says hello too"

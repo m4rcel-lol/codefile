@@ -177,7 +177,10 @@ class Parser:
             while self.current.type == TT.COMMA:
                 self.advance()
                 deps.append(self.expect(TT.IDENT).value)
-        self.expect(TT.COLON)
+        if self.current.type in (TT.COLON, TT.FATARROW):
+            self.advance()
+        else:
+            self.expect(TT.COLON)
         self._consume_newline()
         body = self._parse_block()
         return TaskNode(name=name_tok.value, dependencies=deps, body=body,
@@ -203,7 +206,10 @@ class Parser:
     def _parse_if(self) -> IfNode:
         tok = self.expect(TT.IF)
         cond = self._parse_expr()
-        self.expect(TT.COLON)
+        if self.current.type in (TT.COLON, TT.FATARROW):
+            self.advance()
+        else:
+            self.expect(TT.COLON)
         self._consume_newline()
         then_body = self._parse_block()
 
@@ -211,7 +217,10 @@ class Parser:
         while self.current.type == TT.ELIF:
             self.advance()
             elif_cond = self._parse_expr()
-            self.expect(TT.COLON)
+            if self.current.type in (TT.COLON, TT.FATARROW):
+                self.advance()
+            else:
+                self.expect(TT.COLON)
             self._consume_newline()
             elif_body = self._parse_block()
             elif_clauses.append((elif_cond, elif_body))
@@ -219,7 +228,10 @@ class Parser:
         else_body = []
         if self.current.type == TT.ELSE:
             self.advance()
-            self.expect(TT.COLON)
+            if self.current.type in (TT.COLON, TT.FATARROW):
+                self.advance()
+            else:
+                self.expect(TT.COLON)
             self._consume_newline()
             else_body = self._parse_block()
 
@@ -236,7 +248,10 @@ class Parser:
         var_tok = self.expect(TT.IDENT)
         self.expect(TT.IN)
         iterable = self._parse_expr()
-        self.expect(TT.COLON)
+        if self.current.type in (TT.COLON, TT.FATARROW):
+            self.advance()
+        else:
+            self.expect(TT.COLON)
         self._consume_newline()
         body = self._parse_block()
         return ForNode(variable=var_tok.value, iterable=iterable, body=body,
@@ -249,7 +264,10 @@ class Parser:
     def _parse_while(self) -> WhileNode:
         tok = self.expect(TT.WHILE)
         cond = self._parse_expr()
-        self.expect(TT.COLON)
+        if self.current.type in (TT.COLON, TT.FATARROW):
+            self.advance()
+        else:
+            self.expect(TT.COLON)
         self._consume_newline()
         body = self._parse_block()
         return WhileNode(condition=cond, body=body, line=tok.line, col=tok.col)
@@ -277,7 +295,10 @@ class Parser:
 
     def _parse_shell_block(self) -> ShellBlockNode:
         tok = self.expect(TT.SHELL)
-        self.expect(TT.COLON)
+        if self.current.type in (TT.COLON, TT.FATARROW):
+            self.advance()
+        else:
+            self.expect(TT.COLON)
         self._consume_newline()
         self.expect(TT.INDENT)
         commands = []
