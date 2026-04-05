@@ -1,43 +1,43 @@
 # Conditionals — examples/conditional.codefile
-# Demonstrates if/elif/else with environment variable checks.
+# Demonstrates when/elsewhen/otherwise with environment variable checks.
 
-task default:
-    let plat = platform()
+job default =>
+    bind plat = platform()
     log("Running on platform: ${plat}")
 
-    if plat == "windows":
+    when plat == "windows" =>
         print("Windows-specific path")
-    elif plat == "linux":
+    elsewhen plat == "linux" =>
         print("Linux-specific path")
-    else:
+    otherwise =>
         print("Unknown platform")
 
     # Check environment variable
-    let user = env("USER", env("USERNAME", "unknown"))
+    bind user = env("USER", env("USERNAME", "unknown"))
     print("Current user: ${user}")
 
-    let debug = env("DEBUG", "false")
-    if debug == "true":
+    bind debug = env("DEBUG", "false")
+    when debug == "true" =>
         log("DEBUG mode is ON")
-    else:
+    otherwise =>
         log("DEBUG mode is OFF")
 
     # Nested conditions
-    let x = 42
-    if x > 100:
+    bind x = 42
+    when x > 100 =>
         print("x is large")
-    elif x > 50:
+    elsewhen x > 50 =>
         print("x is medium")
-    elif x > 0:
+    elsewhen x > 0 =>
         print("x is small and positive")
-    else:
+    otherwise =>
         print("x is zero or negative")
 
     # Boolean expressions
-    let a = true
-    let b = false
-    if a and not b:
+    bind a = true
+    bind b = false
+    when a and not b =>
         print("a is true and b is false — correct!")
 
-    if a or b:
+    when a or b =>
         print("at least one is true")

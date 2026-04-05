@@ -76,10 +76,27 @@ class TT(Enum):
 
     # Shell line (everything after $)
     SHELL_LINE  = auto()
+    FATARROW    = auto()   # =>
 
 
 # Keywords mapping
 KEYWORDS: dict[str, TT] = {
+    # Custom-first surface syntax
+    "job":      TT.TASK,
+    "requires": TT.NEEDS,
+    "bind":     TT.LET,
+    "when":     TT.IF,
+    "elsewhen": TT.ELIF,
+    "otherwise": TT.ELSE,
+    "each":     TT.FOR,
+    "over":     TT.IN,
+    "loop":     TT.WHILE,
+    "use":      TT.IMPORT,
+    "give":     TT.RETURN,
+    "stop":     TT.BREAK,
+    "skip":     TT.CONTINUE,
+    "exec":     TT.SHELL,
+    # Legacy compatibility aliases
     "task":     TT.TASK,
     "needs":    TT.NEEDS,
     "let":      TT.LET,
@@ -286,6 +303,9 @@ class Lexer:
             two = line[pos:pos + 2]
             if two == '==':
                 self.tokens.append(Token(TT.EQEQ, '==', lineno, col))
+                pos += 2; continue
+            if two == '=>':
+                self.tokens.append(Token(TT.FATARROW, '=>', lineno, col))
                 pos += 2; continue
             if two == '!=':
                 self.tokens.append(Token(TT.NEQ, '!=', lineno, col))

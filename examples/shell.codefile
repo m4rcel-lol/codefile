@@ -1,37 +1,37 @@
 # Shell commands — examples/shell.codefile
 # Demonstrates inline shell commands and capturing output.
 
-task default needs show_date, show_files:
+job default requires show_date, show_files =>
     log("Shell demo complete")
 
-task show_date:
+job show_date =>
     log("--- inline shell command ---")
-    if platform() == "windows":
+    when platform() == "windows" =>
         $ echo Current date/time:
         $ date /T
         $ time /T
-    else:
+    otherwise =>
         $ echo "Current date/time:"
         $ date
 
-task show_files:
+job show_files =>
     log("--- capturing shell output with run() ---")
-    if platform() == "windows":
-        let listing = run("dir /B")
-    else:
-        let listing = run("ls -1")
+    when platform() == "windows" =>
+        bind listing = run("dir /B")
+    otherwise =>
+        bind listing = run("ls -1")
     print("Files in current directory:")
     print(listing)
 
-task shell_block_demo:
-    log("--- shell block ---")
-    if platform() == "windows":
-        shell:
+job shell_block_demo =>
+    log("--- exec block ---")
+    when platform() == "windows" =>
+        exec =>
             echo line 1
             echo line 2
             echo line 3
-    else:
-        shell:
+    otherwise =>
+        exec =>
             echo "line 1"
             echo "line 2"
             echo "line 3"
