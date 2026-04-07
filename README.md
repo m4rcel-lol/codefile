@@ -35,6 +35,7 @@ Legacy syntax remains accepted in compatibility mode aliases:
 
 Download release assets from GitHub Releases:
 
+- `install-codefile.sh` (standalone Linux installer script)
 - `codefile-*.rpm` (Fedora/RHEL)
 - `codefile-*.pkg.tar.zst` (Arch Linux)
 - `codefile-setup.exe` (Windows installer)
@@ -42,6 +43,9 @@ Download release assets from GitHub Releases:
 Install with:
 
 ```bash
+# Linux standalone installer (installs binary and updates Bash PATH when needed)
+bash install-codefile.sh
+
 # Fedora/RHEL
 sudo dnf install ./codefile-*.rpm
 

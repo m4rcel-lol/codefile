@@ -49,6 +49,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Download Linux install script
+        uses: actions/download-artifact@v4
+        with:
+          name: codefile-install-script
+          path: ./artifacts/install-script
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
       - name: Download Windows zip
         uses: actions/download-artifact@v4
         with:
@@ -74,6 +82,10 @@ jobs:
             ## Install on Linux
 
             ```bash
+            # Standalone installer script (installs Codefile + Bash PATH setup)
+            curl -fsSL -o install-codefile.sh https://github.com/${{ github.repository }}/releases/download/${{ github.event.workflow_run.head_branch }}/install-codefile.sh
+            bash install-codefile.sh
+
             # Debian/Ubuntu
             sudo dpkg -i codefile_*.deb
 
@@ -94,6 +106,7 @@ jobs:
             ```
           files: |
             ./artifacts/linux/codefile
+            ./artifacts/install-script/install-codefile.sh
             ./artifacts/deb/*.deb
             ./artifacts/rpm/*.rpm
             ./artifacts/arch/*.pkg.tar.zst

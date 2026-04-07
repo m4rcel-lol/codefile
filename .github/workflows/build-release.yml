@@ -111,6 +111,12 @@ jobs:
           name: codefile-linux
           path: dist/codefile
 
+      - name: Upload Linux install script artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-install-script
+          path: scripts/install-codefile.sh
+
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
