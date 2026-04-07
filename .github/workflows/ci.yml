@@ -49,7 +49,22 @@ jobs:
         shell: powershell
         run: .\dist\codefile.exe version
 
-      - name: Upload standalone artifact
+      - name: Prepare Linux standalone install bundle
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p standalone
+          cp dist/codefile standalone/codefile
+          cp scripts/install-codefile.sh standalone/install-codefile.sh
+
+      - name: Upload standalone artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-standalone-${{ matrix.os }}
+          path: standalone/*
+
+      - name: Upload standalone artifact (Windows)
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: codefile-standalone-${{ matrix.os }}
