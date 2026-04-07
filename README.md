@@ -43,7 +43,7 @@ Download release assets from GitHub Releases:
 Install with:
 
 ```bash
-# Linux standalone installer (installs binary and updates Bash PATH when needed)
+# Linux standalone installer (uses local `./codefile` next to script if present, otherwise downloads release binary)
 bash install-codefile.sh
 
 # Fedora/RHEL
