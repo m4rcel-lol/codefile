@@ -397,7 +397,8 @@ class TestBuiltins:
     def test_exists_true(self, capsys, tmp_path):
         f = tmp_path / "test.txt"
         f.write_text("hello")
-        src = f'task default:\n    print(exists("{str(f)}"))\n'
+        path = f.as_posix()
+        src = f'task default:\n    print(exists("{path}"))\n'
         run_task(src)
         assert "true" in capsys.readouterr().out
 
@@ -428,10 +429,11 @@ class TestBuiltins:
 
     def test_read_write_file(self, capsys, tmp_path):
         f = tmp_path / "test.txt"
+        path = f.as_posix()
         src = (
             f'task default:\n'
-            f'    write_file("{str(f)}", "content123")\n'
-            f'    let c = read_file("{str(f)}")\n'
+            f'    write_file("{path}", "content123")\n'
+            f'    let c = read_file("{path}")\n'
             f'    print(c)\n'
         )
         run_task(src)
