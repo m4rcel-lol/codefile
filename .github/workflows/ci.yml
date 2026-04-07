@@ -55,7 +55,6 @@ jobs:
           mkdir -p standalone
           cp dist/codefile standalone/codefile
           cp scripts/install-codefile.sh standalone/install-codefile.sh
-          chmod +x standalone/install-codefile.sh
 
       - name: Upload standalone artifact (Linux)
         if: runner.os == 'Linux'

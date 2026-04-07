@@ -4,7 +4,9 @@ set -euo pipefail
 REPO="${CODEFILE_REPO:-m4rcel-lol/codefile}"
 TAG="${CODEFILE_TAG:-latest}"
 INSTALL_DIR="${CODEFILE_INSTALL_DIR:-/usr/local/bin}"
+FALLBACK_INSTALL_DIR="${CODEFILE_FALLBACK_DIR:-${HOME}/.local/bin}"
 BASHRC_FILE="${HOME}/.bashrc"
+PATH_UPDATED=0
 
 need_cmd() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -31,38 +33,53 @@ download_binary() {
 
 install_binary() {
     local src="$1"
-    local target="${INSTALL_DIR}/codefile"
+    local chosen_dir="${INSTALL_DIR}"
+    local target
 
-    if [ ! -d "${INSTALL_DIR}" ]; then
-        mkdir -p "${INSTALL_DIR}" 2>/dev/null || true
+    if [ ! -d "${chosen_dir}" ]; then
+        mkdir -p "${chosen_dir}" 2>/dev/null || true
     fi
 
-    if [ -w "${INSTALL_DIR}" ]; then
+    target="${chosen_dir}/codefile"
+    if [ -w "${chosen_dir}" ]; then
         install -m 0755 "${src}" "${target}"
+        echo "${chosen_dir}"
         return 0
     fi
 
     if command -v sudo >/dev/null 2>&1; then
         sudo install -m 0755 "${src}" "${target}"
+        echo "${chosen_dir}"
         return 0
     fi
 
-    INSTALL_DIR="${HOME}/.local/bin"
-    mkdir -p "${INSTALL_DIR}"
-    target="${INSTALL_DIR}/codefile"
+    chosen_dir="${FALLBACK_INSTALL_DIR}"
+    mkdir -p "${chosen_dir}"
+    target="${chosen_dir}/codefile"
     install -m 0755 "${src}" "${target}"
+    echo "${chosen_dir}"
 }
 
 ensure_bash_path() {
-    if [ "${INSTALL_DIR}" = "/usr/local/bin" ]; then
+    local target_dir="$1"
+    local export_line="export PATH=\"\$PATH:${target_dir}\""
+
+    if [[ ":${PATH}:" == *":${target_dir}:"* ]]; then
         return 0
     fi
 
-    local export_line="export PATH=\"${INSTALL_DIR}:\$PATH\""
-    if [ ! -f "${BASHRC_FILE}" ] || ! grep -Fq "${export_line}" "${BASHRC_FILE}"; then
-        echo "${export_line}" >> "${BASHRC_FILE}"
-        echo "Added ${INSTALL_DIR} to PATH in ${BASHRC_FILE}"
+    if [ -f "${BASHRC_FILE}" ] && grep -Fq "${export_line}" "${BASHRC_FILE}"; then
+        return 0
     fi
+
+    if [ ! -f "${BASHRC_FILE}" ]; then
+        touch "${BASHRC_FILE}"
+    fi
+
+    echo "${export_line}" >> "${BASHRC_FILE}"
+    echo "Added ${target_dir} to PATH in ${BASHRC_FILE}"
+    PATH_UPDATED=1
+    return 0
 }
 
 main() {
@@ -78,13 +95,16 @@ main() {
     tmp="$(mktemp)"
     trap 'rm -f "${tmp}"' EXIT
 
+    local final_install_dir
     download_binary "${effective_tag}" "${tmp}"
-    install_binary "${tmp}"
-    ensure_bash_path
+    final_install_dir="$(install_binary "${tmp}")"
+    ensure_bash_path "${final_install_dir}"
 
-    echo "Codefile installed to ${INSTALL_DIR}/codefile"
-    echo "Restart your shell or run: source ${BASHRC_FILE}"
-    "${INSTALL_DIR}/codefile" version
+    echo "Codefile installed to ${final_install_dir}/codefile"
+    if [ "${PATH_UPDATED}" -eq 1 ]; then
+        echo "Bash PATH updated. Restart Bash or run: source ${BASHRC_FILE}"
+    fi
+    "${final_install_dir}/codefile" version
 }
 
 main "$@"
