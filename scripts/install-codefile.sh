@@ -20,14 +20,14 @@ need_cmd() {
 resolve_latest_tag() {
     local latest_url
     latest_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest")" || {
-        echo "Error: unable to resolve latest release for ${REPO}." >&2
+        echo "Error: unable to resolve latest release for configured repository." >&2
         return 1
     }
 
     local resolved_tag
     resolved_tag="$(basename "${latest_url}")"
     if [ -z "${resolved_tag}" ] || [ "${resolved_tag}" = "releases" ] || [ "${resolved_tag}" = "latest" ]; then
-        echo "Error: no GitHub release tag found for ${REPO}. Place the 'codefile' binary next to this installer script and run it again." >&2
+        echo "Error: no GitHub release tag found for ${REPO}. This can happen when no releases are published, the repository configuration is wrong, or release metadata is unreachable. Place the 'codefile' binary in the same directory as this script (${SCRIPT_DIR}) and run it again." >&2
         return 1
     fi
 
@@ -51,7 +51,17 @@ find_local_binary() {
         return 1
     fi
 
+    if [ -x "${local_binary}" ]; then
+        echo "${local_binary}"
+        return 0
+    fi
+
     chmod +x "${local_binary}" 2>/dev/null || true
+
+    if ! [ -x "${local_binary}" ]; then
+        echo "Error: local binary is not executable: ${local_binary}. Check file permissions or copy a binary with execute permission." >&2
+        return 1
+    fi
     echo "${local_binary}"
 }
 
@@ -124,10 +134,13 @@ main() {
 
         local effective_tag="${TAG}"
         if [ "${TAG}" = "latest" ]; then
-            effective_tag="$(resolve_latest_tag)"
+            effective_tag="$(resolve_latest_tag)" || exit 1
         fi
 
-        TMP_FILE="$(mktemp)"
+        TMP_FILE="$(mktemp)" || {
+            echo "Error: failed to create temporary file." >&2
+            exit 1
+        }
         source_binary="${TMP_FILE}"
         download_binary "${effective_tag}" "${source_binary}"
     fi
