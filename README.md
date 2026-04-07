@@ -31,6 +31,29 @@ Legacy syntax remains accepted in compatibility mode aliases:
 
 ## Installation
 
+### Prebuilt Installers (No Python Required)
+
+Download release assets from GitHub Releases:
+
+- `codefile-*.rpm` (Fedora/RHEL)
+- `codefile-*.pkg.tar.zst` (Arch Linux)
+- `codefile-setup.exe` (Windows installer)
+
+Install with:
+
+```bash
+# Fedora/RHEL
+sudo dnf install ./codefile-*.rpm
+
+# Arch Linux
+sudo pacman -U ./codefile-*.pkg.tar.zst
+```
+
+```powershell
+# Windows
+codefile version
+```
+
 ### From Source (Python 3.10+)
 
 ```bash

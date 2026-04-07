@@ -33,11 +33,35 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Download .rpm package
+        uses: actions/download-artifact@v4
+        with:
+          name: codefile-rpm
+          path: ./artifacts/rpm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download Arch package
+        uses: actions/download-artifact@v4
+        with:
+          name: codefile-arch
+          path: ./artifacts/arch
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
       - name: Download Windows zip
         uses: actions/download-artifact@v4
         with:
           name: codefile-windows
           path: ./artifacts/windows
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: codefile-windows-installer
+          path: ./artifacts/windows-installer
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -50,25 +74,30 @@ jobs:
             ## Install on Linux
 
             ```bash
-            # Option 1 — .deb package (Debian/Ubuntu)
+            # Debian/Ubuntu
             sudo dpkg -i codefile_*.deb
 
-            # Option 2 — standalone binary
-            chmod +x codefile
-            sudo mv codefile /usr/local/bin/
+            # Fedora/RHEL
+            sudo dnf install ./codefile-*.rpm
+
+            # Arch Linux
+            sudo pacman -U ./codefile-*.pkg.tar.zst
             ```
 
             ## Install on Windows
 
-            Unzip `codefile-windows.zip` and add the folder to your `PATH`, or run:
+            Run `codefile-setup.exe` and complete the installer wizard.
+            (Optional portable build is also available in `codefile-windows.zip`.)
 
             ```powershell
-            # From the unzipped folder
-            .\codefile.exe version
+            codefile version
             ```
           files: |
             ./artifacts/linux/codefile
             ./artifacts/deb/*.deb
+            ./artifacts/rpm/*.rpm
+            ./artifacts/arch/*.pkg.tar.zst
+            ./artifacts/windows-installer/codefile-setup.exe
             ./artifacts/windows/codefile-windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
