@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-linux:
-    name: Build Linux binary + .deb
+    name: Build Linux binary + distro installers
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,6 +24,8 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pyinstaller
+          sudo apt-get update
+          sudo apt-get install -y rpm zstd
 
       - name: Build standalone binary
         run: pyinstaller --onefile --name codefile cli.py
@@ -43,13 +45,65 @@ jobs:
           Package: codefile
           Version: ${VERSION}
           Architecture: amd64
-          Maintainer: Codefile Team <codefile@example.com>
+          Maintainer: Codefile Team <codefile@noreply.github.com>
           Description: Codefile — a task-oriented scripting language
            Codefile is a modern, human-readable scripting language inspired
            by Makefile but designed as a real programming language with
            variables, control flow, loops, and first-class shell integration.
           EOF
           dpkg-deb --build "${PKG}"
+
+      - name: Build .rpm package (Fedora/RHEL)
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          mkdir -p rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+          cp dist/codefile rpmbuild/SOURCES/codefile
+          cat > rpmbuild/SPECS/codefile.spec <<EOF
+          Name:           codefile
+          Version:        ${VERSION}
+          Release:        1%{?dist}
+          Summary:        Codefile task programming language
+          License:        MIT
+          URL:            https://github.com/${{ github.repository }}
+          Source0:        codefile
+          BuildArch:      x86_64
+
+          %description
+          Codefile is a modern, human-readable scripting language inspired by Makefile.
+
+          %prep
+
+          %build
+
+          %install
+          install -D -m 0755 %{SOURCE0} %{buildroot}/usr/bin/codefile
+
+          %files
+          /usr/bin/codefile
+          EOF
+          rpmbuild --define "_topdir $PWD/rpmbuild" -bb rpmbuild/SPECS/codefile.spec
+          cp rpmbuild/RPMS/x86_64/*.rpm .
+
+      - name: Build Arch package (.pkg.tar.zst)
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PKGFILE="codefile-${VERSION}-1-x86_64.pkg.tar.zst"
+          mkdir -p archpkg/usr/bin
+          cp dist/codefile archpkg/usr/bin/codefile
+          SIZE=$(stat -c%s archpkg/usr/bin/codefile)
+          cat > archpkg/.PKGINFO <<EOF
+          pkgname = codefile
+          pkgbase = codefile
+          pkgver = ${VERSION}-1
+          pkgdesc = Codefile task programming language
+          url = https://github.com/${{ github.repository }}
+          builddate = $(date +%s)
+          packager = Codefile Team <codefile@noreply.github.com>
+          size = ${SIZE}
+          arch = x86_64
+          license = MIT
+          EOF
+          tar --zstd -cf "${PKGFILE}" -C archpkg .
 
       - name: Upload Linux binary artifact
         uses: actions/upload-artifact@v4
@@ -63,8 +117,20 @@ jobs:
           name: codefile-deb
           path: codefile_*.deb
 
+      - name: Upload .rpm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-rpm
+          path: codefile-*.rpm
+
+      - name: Upload Arch package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-arch
+          path: codefile-*.pkg.tar.zst
+
   build-windows:
-    name: Build Windows .exe
+    name: Build Windows executable + installer
     runs-on: windows-latest
     permissions:
       contents: read
@@ -85,6 +151,56 @@ jobs:
       - name: Build standalone .exe
         run: pyinstaller --onefile --name codefile cli.py
 
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build Windows installer (.exe)
+        shell: powershell
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          @"
+          [Setup]
+          AppId={{2D05CE89-3A9B-4FDE-8BB6-A84B9FD2A4BF}
+          AppName=Codefile
+          AppVersion=$version
+          AppPublisher=Codefile Team
+          DefaultDirName={autopf}\Codefile
+          DefaultGroupName=Codefile
+          OutputBaseFilename=codefile-setup
+          Compression=lzma
+          SolidCompression=yes
+          ChangesEnvironment=yes
+          WizardStyle=modern
+
+          [Files]
+          Source: "dist\codefile.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+          [Icons]
+          Name: "{group}\Codefile"; Filename: "{app}\codefile.exe"
+          Name: "{group}\Uninstall Codefile"; Filename: "{uninstallexe}"
+
+          [Tasks]
+          Name: "addtopath"; Description: "Add Codefile to PATH"; GroupDescription: "Additional tasks:"; Flags: unchecked
+
+          [Registry]
+          Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"; Check: NeedsAddPath(ExpandConstant('{app}')); Tasks: addtopath
+
+          [Code]
+          function NeedsAddPath(Param: string): boolean;
+          var
+            OrigPath: string;
+          begin
+            if not RegQueryStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', OrigPath) then
+            begin
+              Result := True;
+              exit;
+            end;
+            Result := Pos(';' + Uppercase(Param) + ';', ';' + Uppercase(OrigPath) + ';') = 0;
+          end;
+          "@ | Set-Content -Path codefile-installer.iss -Encoding ASCII
+
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" codefile-installer.iss
+
       - name: Create zip archive
         run: |
           Compress-Archive -Path dist\codefile.exe, README.md -DestinationPath codefile-windows.zip
@@ -95,3 +211,9 @@ jobs:
         with:
           name: codefile-windows
           path: codefile-windows.zip
+
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-windows-installer
+          path: Output\codefile-setup.exe
