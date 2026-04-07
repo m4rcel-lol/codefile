@@ -45,7 +45,7 @@ jobs:
           Package: codefile
           Version: ${VERSION}
           Architecture: amd64
-          Maintainer: Codefile Team <codefile@example.com>
+          Maintainer: Codefile Team <codefile@noreply.github.com>
           Description: Codefile — a task-oriented scripting language
            Codefile is a modern, human-readable scripting language inspired
            by Makefile but designed as a real programming language with
@@ -98,7 +98,7 @@ jobs:
           pkgdesc = Codefile task programming language
           url = https://github.com/${{ github.repository }}
           builddate = $(date +%s)
-          packager = Codefile Team <codefile@example.com>
+          packager = Codefile Team <codefile@noreply.github.com>
           size = ${SIZE}
           arch = x86_64
           license = MIT
@@ -149,7 +149,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build standalone .exe
-        run: pyinstaller --onefile --name codefile --icon assets/icon.ico cli.py
+        run: pyinstaller --onefile --name codefile cli.py
 
       - name: Install Inno Setup
         run: choco install innosetup -y

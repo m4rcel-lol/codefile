@@ -49,6 +49,8 @@ sudo dnf install ./codefile-*.rpm
 sudo pacman -U ./codefile-*.pkg.tar.zst
 ```
 
+Run `codefile-setup.exe` from the release assets on Windows, then verify:
+
 ```powershell
 # Windows
 codefile version
