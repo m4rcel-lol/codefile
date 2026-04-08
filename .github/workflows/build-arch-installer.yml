@@ -1,0 +1,62 @@
+name: Build Arch Installer
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-arch-installer:
+    name: Build Arch Linux installer package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+          sudo apt-get update
+          sudo apt-get install -y zstd
+
+      - name: Build standalone binary
+        run: pyinstaller --onefile --name codefile cli.py
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build Arch package (.pkg.tar.zst)
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PKGFILE="codefile-${VERSION}-1-x86_64.pkg.tar.zst"
+          mkdir -p archpkg/usr/bin
+          cp dist/codefile archpkg/usr/bin/codefile
+          SIZE=$(stat -c%s archpkg/usr/bin/codefile)
+          cat > archpkg/.PKGINFO <<EOF
+          pkgname = codefile
+          pkgbase = codefile
+          pkgver = ${VERSION}-1
+          pkgdesc = Codefile task programming language
+          url = https://github.com/${{ github.repository }}
+          builddate = $(date +%s)
+          packager = Codefile Team <codefile@noreply.github.com>
+          size = ${SIZE}
+          arch = x86_64
+          license = MIT
+          EOF
+          tar --zstd -cf "${PKGFILE}" -C archpkg .
+
+      - name: Upload Arch installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codefile-arch
+          path: codefile-*.pkg.tar.zst
