@@ -1,6 +1,6 @@
 # Codefile Language Specification
 
-**Version**: 2.0.0  
+**Version**: 2.1.0  
 **File Extension**: `.codefile`
 
 ---
@@ -107,11 +107,12 @@ exec =>
 ## 4. Data Types
 
 - `int`
+- `float`
 - `string`
 - `bool`
 - `list`
 
-Strings support interpolation with `${name}`.
+Strings support interpolation with `${name}` and `${expression}`.
 
 ---
 
@@ -141,7 +142,7 @@ Strings support interpolation with `${name}`.
 - `print`, `log`, `run`
 - `env`, `exists`, `fail`
 - `read_file`, `write_file`
-- `platform`, `len`, `str`, `int`
+- `platform`, `len`, `str`, `int`, `float`
 
 ---
 

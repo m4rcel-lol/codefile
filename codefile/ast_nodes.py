@@ -171,6 +171,12 @@ class IntLiteralNode(Node):
 
 
 @dataclass
+class FloatLiteralNode(Node):
+    """Float literal: 3.14"""
+    value: float = 0.0
+
+
+@dataclass
 class StringLiteralNode(Node):
     """String literal with optional interpolation: "hello ${name}" """
     raw: str = ""          # raw string value (not yet interpolated)

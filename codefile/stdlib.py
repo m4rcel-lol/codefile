@@ -116,6 +116,14 @@ def builtin_int(value: Any) -> int:
         raise TypeError(f"int() cannot convert {value!r}: {exc}") from exc
 
 
+def builtin_float(value: Any) -> float:
+    """float(value) — Convert value to float."""
+    try:
+        return float(value)
+    except (ValueError, TypeError) as exc:
+        raise TypeError(f"float() cannot convert {value!r}: {exc}") from exc
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -133,4 +141,5 @@ BUILTINS: dict[str, Any] = {
     "len":        builtin_len,
     "str":        builtin_str,
     "int":        builtin_int,
+    "float":      builtin_float,
 }

@@ -22,7 +22,7 @@ from .ast_nodes import (
     Node, ProgramNode, AssignNode, TaskNode, IfNode, ForNode, WhileNode,
     BreakNode, ContinueNode, ReturnNode, ShellCommandNode, ShellBlockNode,
     ImportNode, BinaryOpNode, UnaryOpNode, FunctionCallNode, IdentifierNode,
-    IntLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
+    IntLiteralNode, FloatLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
     ExpressionStatementNode,
 )
 from .stdlib import BUILTINS
@@ -358,6 +358,9 @@ class Interpreter:
         if isinstance(node, IntLiteralNode):
             return node.value
 
+        if isinstance(node, FloatLiteralNode):
+            return node.value
+
         if isinstance(node, BoolLiteralNode):
             return node.value
 
@@ -485,6 +488,8 @@ class Interpreter:
             return value
         if isinstance(value, int):
             return value != 0
+        if isinstance(value, float):
+            return value != 0.0
         if isinstance(value, str):
             return len(value) > 0
         if isinstance(value, list):
@@ -507,10 +512,32 @@ class Interpreter:
         """
         def replace_match(m):
             key = m.group(1).strip()
+
+            if not key:
+                return ''
+
             try:
                 val = env.get(key)
                 return self._to_str(val)
             except KeyError:
+                pass
+
+            try:
+                from .lexer import Lexer
+                from .parser import Parser
+
+                expr_tokens = Lexer(key, self.filename).tokenize()
+                expr_program = Parser(expr_tokens, self.filename).parse()
+                if len(expr_program.body) != 1:
+                    return ''
+
+                expr_stmt = expr_program.body[0]
+                if not isinstance(expr_stmt, ExpressionStatementNode):
+                    return ''
+
+                val = self._eval(expr_stmt.expr, env)
+                return self._to_str(val)
+            except Exception:
                 # Leave unresolved references as empty string rather than crashing
                 return ''
 

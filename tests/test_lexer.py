@@ -37,6 +37,16 @@ class TestLiterals:
         assert toks[0].type == TT.INT
         assert toks[0].value == -7
 
+    def test_float(self):
+        toks = tokenize("3.14")
+        assert toks[0].type == TT.FLOAT
+        assert toks[0].value == 3.14
+
+    def test_negative_float(self):
+        toks = tokenize("-0.5")
+        assert toks[0].type == TT.FLOAT
+        assert toks[0].value == -0.5
+
     def test_double_quoted_string(self):
         toks = tokenize('"hello"')
         assert toks[0].type == TT.STRING

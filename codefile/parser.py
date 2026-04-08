@@ -15,7 +15,7 @@ from .ast_nodes import (
     Node, ProgramNode, AssignNode, TaskNode, IfNode, ForNode, WhileNode,
     BreakNode, ContinueNode, ReturnNode, ShellCommandNode, ShellBlockNode,
     ImportNode, BinaryOpNode, UnaryOpNode, FunctionCallNode, IdentifierNode,
-    IntLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
+    IntLiteralNode, FloatLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
     ExpressionStatementNode,
 )
 
@@ -416,6 +416,11 @@ class Parser:
         if tok.type == TT.INT:
             self.advance()
             return IntLiteralNode(value=tok.value, line=tok.line, col=tok.col)
+
+        # Float literal
+        if tok.type == TT.FLOAT:
+            self.advance()
+            return FloatLiteralNode(value=tok.value, line=tok.line, col=tok.col)
 
         # String literal
         if tok.type == TT.STRING:
