@@ -20,6 +20,7 @@ class TT(Enum):
     """Token Type enumeration."""
     # Literals
     INT         = auto()
+    FLOAT       = auto()
     STRING      = auto()
     BOOL        = auto()
 
@@ -368,14 +369,25 @@ class Lexer:
         raise LexError("Unterminated string literal", lineno, start_col, self.filename)
 
     def _scan_number(self, line: str, pos: int, lineno: int):
-        """Scan an integer literal (optionally negative)."""
+        """Scan an integer or float literal (optionally negative)."""
         start = pos
         col = pos + 1
         if line[pos] == '-':
             pos += 1
         while pos < len(line) and line[pos].isdigit():
             pos += 1
-        return Token(TT.INT, int(line[start:pos]), lineno, col), pos
+
+        is_float = False
+        if pos < len(line) and line[pos] == '.' and pos + 1 < len(line) and line[pos + 1].isdigit():
+            is_float = True
+            pos += 1
+            while pos < len(line) and line[pos].isdigit():
+                pos += 1
+
+        raw = line[start:pos]
+        if is_float:
+            return Token(TT.FLOAT, float(raw), lineno, col), pos
+        return Token(TT.INT, int(raw), lineno, col), pos
 
     def _scan_ident(self, line: str, pos: int, lineno: int):
         """Scan an identifier or keyword."""

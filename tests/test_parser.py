@@ -13,7 +13,7 @@ from codefile.ast_nodes import (
     ProgramNode, TaskNode, AssignNode, IfNode, ForNode, WhileNode,
     BreakNode, ContinueNode, ReturnNode, ShellCommandNode, ShellBlockNode,
     ImportNode, BinaryOpNode, UnaryOpNode, FunctionCallNode, IdentifierNode,
-    IntLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
+    IntLiteralNode, FloatLiteralNode, StringLiteralNode, BoolLiteralNode, ListLiteralNode,
     ExpressionStatementNode,
 )
 
@@ -72,6 +72,12 @@ class TestAssignment:
         assert isinstance(node, AssignNode)
         assert isinstance(node.value, BoolLiteralNode)
         assert node.value.value is True
+
+    def test_float_assignment(self):
+        node = first_stmt("let ratio = 1.5")
+        assert isinstance(node, AssignNode)
+        assert isinstance(node.value, FloatLiteralNode)
+        assert node.value.value == 1.5
 
     def test_list_assignment(self):
         node = first_stmt('let items = ["a", "b", 1]')

@@ -101,6 +101,7 @@ codefile run -f hello.codefile
 ```codefile
 bind name = "Alice"
 bind count = 42
+bind ratio = 1.5
 bind debug = true
 bind items = ["a", "b", "c"]
 ```
@@ -167,6 +168,7 @@ loop n > 0 =>
 | `len(value)`              | Length of string or list                 |
 | `str(value)`              | Convert to string                        |
 | `int(value)`              | Convert to integer                       |
+| `float(value)`            | Convert to float                         |
 
 ### Imports
 

@@ -124,6 +124,11 @@ class TestVariables:
         run_task(src)
         assert "Hello, World!" in capsys.readouterr().out
 
+    def test_expression_interpolation(self, capsys):
+        src = 'let x = 2\ntask default:\n    print("sum=${x + 3}")\n'
+        run_task(src)
+        assert "sum=5" in capsys.readouterr().out
+
     def test_undefined_variable_raises(self):
         src = 'task default:\n    print(undefined_var)\n'
         with pytest.raises(RuntimeError_):
@@ -164,6 +169,11 @@ class TestArithmetic:
         src = 'task default:\n    let s = "hello" + " world"\n    print(s)\n'
         run_task(src)
         assert "hello world" in capsys.readouterr().out
+
+    def test_float_arithmetic(self, capsys):
+        src = 'task default:\n    let x = 1.5 + 2.5\n    print(x)\n'
+        run_task(src)
+        assert "4.0" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +397,11 @@ class TestBuiltins:
         src = 'task default:\n    print(int("42"))\n'
         run_task(src)
         assert "42" in capsys.readouterr().out
+
+    def test_float_str(self, capsys):
+        src = 'task default:\n    print(float("3.25"))\n'
+        run_task(src)
+        assert "3.25" in capsys.readouterr().out
 
     def test_platform(self, capsys):
         src = 'task default:\n    let p = platform()\n    print(p)\n'
